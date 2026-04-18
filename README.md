@@ -1,10 +1,11 @@
 # Snippet Manager App (Fullstack Test Task)
 
 Виконував: Копалко Павло
-Посилання на тестове завдання: https://drive.google.com/file/d/1fWYNE4807Lt31qZ_j-7usAuSCzTBDZRw/view
+Посилання на тестове завдання: [https://drive.google.com/file/d/1fWYNE4807Lt31qZ_j-7usAuSCzTBDZRw/view]
+Посилання на готовий деполой Live Demo (Frontend): [https://arctic-test-task.vercel.app/]
+Посилання на Backend: [https://arctic-test-task.onrender.com/]
 
 Це повноцінний додаток для керування кодовими сніпетами з можливістю пошуку, фільтрації та CRUD-операцій.
-
 
 ## 🚀 Технологічний стек
 - **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind CSS
