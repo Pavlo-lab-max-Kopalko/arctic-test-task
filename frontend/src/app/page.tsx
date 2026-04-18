@@ -3,39 +3,30 @@
 import { useState, useEffect } from 'react';
 import { ISnippet } from './types/snippet';
 import { SnippetCard } from './components/SnippetCard';
+import fetchSnippets from './utils/fetchSnippets';
+import createSnippet from './utils/createSnippet';
+import deleteData from './utils/deleteSnippet';
+
 
 export default function Home() {
   const [title, setTitle] = useState('');
   const [code, setCode] = useState('');
   const [snippets, setSnippets] = useState<ISnippet[]>([]);
   const [loading, setLoading] = useState(true);
-  const [, setError] = useState<null | string>(null);
+  const [error, setError] = useState<null | string>(null);
 
   const [tags, setTags] = useState("");
   const [type, setType] = useState("note");
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchSnippets = async (query = "") => {
-    setLoading(true);
-    try {
-      const res = await fetch(`http://localhost:3000/snippets?search=${query}`);
-      const data = await res.json();
-      setSnippets(data);
-    } catch {
-      setError("Не вдалося завантажити дані");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSnippets();
+    fetchSnippets({ setLoading, setSnippets, setError });
   }, []);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchSnippets(searchQuery);
+      fetchSnippets({ searchQuery, setLoading, setSnippets, setError });
     }, 400);
 
     return () => clearTimeout(delayDebounceFn);
@@ -53,40 +44,27 @@ export default function Home() {
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
     };
 
-    try {
-      const res = await fetch('http://localhost:3000/snippets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(snippetData),
-      });
-
-      if (res.ok) {
-        setTitle('');
-        setCode('');
-        fetchSnippets();
-      }
-    } catch (err) {
-      console.error("Помилка при збереженні", err);
-      alert("Бекенд не відповідає. Перевір, чи запущений NestJS!");
-    }
+    createSnippet({
+      snippetData,
+      setTitle,
+      setCode,
+      searchQuery,
+      setLoading,
+      setSnippets,
+      setError,
+      setTags,
+    });
   };
 
   const deleteSnippet = async (_id: string) => {
-    try {
-      const res = await fetch(`http://localhost:3000/snippets/${_id}`, {
-        method: 'DELETE',
-      });
-
-      if (res.ok) {
-        fetchSnippets();
-      }
-    } catch (err) {
-      console.error("Помилка при видаленні", err);
-      alert("Бекенд не відповідає. Перевір, чи запущений NestJS!");
-    }
+    deleteData({
+      _id,
+      searchQuery,
+      setLoading,
+      setSnippets,
+      setError,
+    });
   }
-
-  console.log(snippets);
 
   return (
     <main className="p-8 max-w-4xl mx-auto">
@@ -143,6 +121,21 @@ export default function Home() {
       <div className="mt-12 space-y-4">
         <h2 className="text-xl font-bold text-black border-b pb-2">Збережені нотатки</h2>
 
+        {error && (
+          <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 animate-shake">
+            <span className="text-lg">⚠️</span>
+            <div>
+              <span className="font-bold">Помилка:</span> {error}
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-500 hover:text-red-700 font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {loading && <p className="text-blue-500 animate-pulse">Завантаження даних...</p>}
 
         {!loading && snippets.length === 0 && (
@@ -150,7 +143,6 @@ export default function Home() {
             Тут поки порожньо. Напишіть щось!
           </div>
         )}
-
 
         <div className="mb-6">
           <input
